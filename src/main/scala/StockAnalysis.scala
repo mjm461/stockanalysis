@@ -11,6 +11,17 @@ object StockAnalysis extends App {
   val db = Database.forURL("jdbc:h2:./stocks", driver = "org.h2.Driver")
   val symbol = "AAPL"
 
+  def createTables = db.withSession{
+    implicit session =>
+      if (MTable.getTables(Stocks.TABLENAME).list.isEmpty) {
+          (Stocks.db.ddl).create
+      }
+      
+       if (MTable.getTables(StockPrice.TABLENAME).list.isEmpty) {
+        (StockPrice.db.ddl).create
+      }
+  }
+  
   def getStockPriceFromInceptionCSV(symbol: String) = {
     getStockPriceCSV(symbol: String, DateTime.now, List('d', 'e', 'f'))
   }
@@ -41,6 +52,8 @@ object StockAnalysis extends App {
       else
         l.head
   }
+  
+  createTables
 
   val id = getId(symbol)
 
