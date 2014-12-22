@@ -8,9 +8,34 @@ import org.joda.time.{ DateTime, Period, Days }
 
 object StockAnalysis extends App {
 
-  val db = Database.forURL("jdbc:h2:./stocks", driver = "org.h2.Driver")
-  val symbol = "AAPL"
+  val db = StockDatabaseConnection.getConnection
 
+  db.withSession {
+    implicit session =>
+      {
+        val tableIndex = StockIndex.table.createAndGetTable
+        val tablePrice = StockPrice.table.createAndGetTable
+        val id: Int = StockIndex.table.insert(new StockIndex.StockIndexRow(None, "AAPL"))
+        val rows = CSVParser.apply(new java.io.File("/home/mark/aapl.csv")).toList
+        val mapper = StockPrice.getMapper(id, rows.head)
+        val insertables = rows.tail.map(mapper.mapRow)
+        // insertables.foreach { StockPrice.table.insert }  // one at a time
+
+        StockPrice.table.insertAll(insertables)
+
+        val r = for {
+          p <- StockPrice.table.table.sortBy(_.date.asc)
+          s <- p.sfk if s.id === id
+        } yield (p.sid, p.id, s.symbol, p.date, p.adjClose)
+
+        println("ID for inserts: " + id)
+        r.list.foreach(println)
+
+      }
+  }
+  //val symbol = "AAPL"
+
+  /*
   def createTables = db.withSession{
     implicit session =>
       if (MTable.getTables(Stocks.TABLENAME).list.isEmpty) {
@@ -105,4 +130,6 @@ object StockAnalysis extends App {
 
     }
   }
+  
+  */
 }
