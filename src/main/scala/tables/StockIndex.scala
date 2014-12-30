@@ -7,12 +7,14 @@ object StockIndex extends GenericTable {
   
   case class StockIndexRow(
     override val id: Option[Int] = None,
-    symbol: String) extends TableRowWithId(id) {
+    symbol: String,
+    updated: java.sql.Date = null ) extends TableRowWithId(id) {
   }
 
   class StockIndexDef(tag: Tag) extends TableWithId[StockIndexRow](tag, tablename ) {
     def symbol = column[String]("SYMBOL", O.NotNull)
-    def * = (id.?, symbol) <> (StockIndexRow.tupled, StockIndexRow.unapply)
+    def updated = column[java.sql.Date]("UPDATED" , O.Nullable )
+    def * = (id.?, symbol, updated) <> (StockIndexRow.tupled, StockIndexRow.unapply)
     //def nameIdx = index("u_name", (name), unique = true)
   }
 

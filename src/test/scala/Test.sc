@@ -6,7 +6,7 @@ import common.CSVParser
 
 object Test {
 
-  val s2 = "aa,bb,cc\n11,22,33".split("\n").toList.map( x => CSVParser.apply(x) )
+ // val s2 = "aa,bb,cc\n11,22,33".split("\n").toList.map( x => CSVParser.apply(x) )
 
 
 
@@ -33,6 +33,12 @@ object Test {
  	val d = new DateTime(12, 8, 12, 0, 0)
   var url2 = getStockPriceFromDate("AAPL", d )
   
+  val vp = getStockPriceFromInception(_)
+  val vp2 = getStockPriceFromDate("AA", _ :DateTime )
+  
+  vp("AAPL")
+  
+  val i: Int = null
   
   
 }
