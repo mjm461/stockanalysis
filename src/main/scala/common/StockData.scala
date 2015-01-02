@@ -21,6 +21,7 @@ object StockData {
       "&" + vars(1) + "=" + end.getDayOfMonth +
       "&" + vars(2) + "=" + end.getYearOfCentury +
       "&ignore=.csv"
+    //println( url )
     io.Source.fromURL(url).mkString //.split("\n").toList
   }
 /*
