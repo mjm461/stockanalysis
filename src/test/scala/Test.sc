@@ -7,9 +7,22 @@ import common.CSVParser
 object Test {
 
  // val s2 = "aa,bb,cc\n11,22,33".split("\n").toList.map( x => CSVParser.apply(x) )
-
-
-
+  class CsvData( header: List[String], data: List[List[String] ]){
+    def apply( input: List[List[String] ] ) = input match{
+      case x :: xs => new CsvData( input.head, input.tail )
+      case _ => null
+    }
+  }
+	val a = List(1,2,3)                       //> a  : List[Int] = List(1, 2, 3)
+	a.head                                    //> res0: Int = 1
+	a.tail                                    //> res1: List[Int] = List(2, 3)
+	val b = List()                            //> b  : List[Nothing] = List()
+	//b.head
+	//b.tail
+	
+	//CsvData.apply( List( 'a','b','c' ) )
+	
+/*
   def getStockPriceFromInception( symbol: String ): String = {
     getStockPrice( symbol: String, DateTime.now, List('d', 'e', 'f'))
   }
@@ -39,6 +52,6 @@ object Test {
   vp("AAPL")
   
   val i: Int = null
-  
+  */
   
 }

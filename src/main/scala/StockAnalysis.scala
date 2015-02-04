@@ -5,19 +5,30 @@ import common._
 import scala.slick.jdbc.meta._
 import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
 import org.joda.time.{ DateTime, Period, Days }
+import StockIndex.StockIndexRow
 
 object StockAnalysis extends App {
-  /*
-  def getId(s: String)(implicit session: Session) = session.withTransaction {
-
-    val q = for (c <- StockIndex.table.table if c.symbol === symbol) yield (c.id, c.updated)
-    val l = q.list
-    if (l.isEmpty)
-      ( -1, null )
-    else
-      l.head
+  def getIndex(symbol: String)(implicit session: Session) = session.withTransaction {
+    val query = for (c <- StockIndex.table.createAndGetTable if c.symbol === symbol) yield c
+    val results = query.list
+    if (results.isEmpty) null
+    else results.head
   }
-*/
+
+  def getStockUpdates(row: StockIndexRow, yesterday: DateTime) = {
+    if (row == null)
+      StockData.getStockPriceFromInceptionCSV(symbol)
+    else if (Days.daysBetween(new DateTime(row.updated), new DateTime(yesterday)).getDays > 0)
+      StockData.getStockPriceFromDateCSV(symbol, new DateTime(row.updated))
+    else
+      null
+  }
+
+  class CsvHeaderData( input: List[List[String] ] ){
+    def header() = if ( input.isEmpty ) null else input.head
+    def data() = if ( input.isEmpty || input.tail.isEmpty ) null else input.tail
+  }
+  
   val db = StockDatabaseConnection.getConnection
   val symbol = "AAPL"
 
@@ -27,45 +38,26 @@ object StockAnalysis extends App {
         val tableIndex = StockIndex.table.createAndGetTable
         val tablePrice = StockPrice.table.createAndGetTable
 
-        val (id: Int, updated: java.sql.Date) = {
-          val query = for (c <- tableIndex if c.symbol === symbol) yield (c.id, c.updated)
-          val results = query.list
-          if (results.isEmpty) (-1, null)
-          else results.head
-        }
+        val row = getIndex(symbol)
 
-        val today = DateTime.now
-        val yesterday = today.minusDays(1).dayOfYear().roundFloorCopy()
+        val yesterday = DateTime.now().minusDays(1).dayOfYear().roundFloorCopy()
 
-        val csvData: String = {
-          if (updated == null)
-            StockData.getStockPriceFromInceptionCSV(symbol)
-          else if (Days.daysBetween(new DateTime(updated), new DateTime(yesterday)).getDays > 0)
-            StockData.getStockPriceFromDateCSV(symbol, new DateTime(updated))
-          else
-            null
-        }
-
-        //val csvAll = CSVParser.apply(new java.io.File("/home/mark/aapl.csv")).toList
-        //val csvData: String  = null
-
+        val csvData: String = getStockUpdates( row, yesterday )
+        
         if (csvData != null) {
-          val csvAll = csvData.split("\n").toList.map(CSVParser.apply(_))
-          val header = csvAll.head
-          val data = csvAll.tail
-          if (data != Nil) {
+          val csvAll = new CsvHeaderData( csvData.split("\n").toList.map(CSVParser.apply(_)) )
+          if (csvAll.data() != null) { // data is in tail
             val sid: Int = {
-              if (id < 0)
-                StockIndex.table.insert(new StockIndex.StockIndexRow(None, symbol, new java.sql.Date(yesterday.getMillis)))
+              if (row == null)
+                StockIndex.table.insert(new StockIndexRow(None, symbol, new java.sql.Date(yesterday.getMillis)))
               else {
-                val q = for { l <- tableIndex if l.id === id } yield l.updated
-                q.update(new java.sql.Date(yesterday.getMillis)) //val statement = q.updateStatement //val invoker = q.updateInvoker
-                id
+                val q = for { l <- tableIndex if l.id === row.id } yield l.updated
+                q.update(new java.sql.Date(yesterday.getMillis))
+                row.id.get
               }
             }
-            val mapper = StockPrice.getMapper(sid, header)
-            val insertables = data.map(mapper.mapRow)
-            StockPrice.table.insertAll(insertables)
+            val mapper = StockPrice.getMapper(sid, csvAll.header()) // header is in head
+            StockPrice.table.insertAll(csvAll.data().map(mapper.mapRow))
           }
         } else {
           println("Already exists and is updated")
