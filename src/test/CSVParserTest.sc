@@ -5,8 +5,6 @@ import parser.CSVParser
 object CSVParserTest {
   println("Welcome to the Scala worksheet")       //> Welcome to the Scala worksheet
   val s: Iterator[List[String]] = CSVParser.apply(new java.io.File( "/home/mark/aapl.csv"))
-                                                  //> s  : Iterator[List[String]] = non-empty iterator
-
   s.foreach( println )                            //> List(Date, Open, High, Low, Close, Volume, Adj Close)
                                                   //| List(2014-11-12, 109.38, 111.43, 109.37, 111.25, 46505800, 111.25)
                                                   //| List(2014-11-11, 108.70, 109.75, 108.40, 109.70, 27442300, 109.70)

@@ -15,7 +15,6 @@ object StockIndex extends GenericTable {
     def symbol = column[String]("SYMBOL", O.NotNull)
     def updated = column[java.sql.Date]("UPDATED" , O.Nullable )
     def * = (id.?, symbol, updated) <> (StockIndexRow.tupled, StockIndexRow.unapply)
-    //def nameIdx = index("u_name", (name), unique = true)
   }
 
   object table extends GenericTableWithId[StockIndexDef, StockIndexRow] {

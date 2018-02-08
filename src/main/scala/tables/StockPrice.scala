@@ -64,7 +64,6 @@ object StockPrice extends GenericTable {
     def volume: Column[Double] = column[Double](StockPriceColumns.volume)
     def adjClose: Column[Double] = column[Double](StockPriceColumns.adjClose)
     def sfk = foreignKey("SIDFK", sid, StockIndex.table.table)(_.id)
-    //def * = (id.?, name) <> (StockRow.tupled, StockRow.unapply)
     def * = (id.?, sid, date, open, high, low, close, volume, adjClose) <> (StockPriceRow.tupled, StockPriceRow.unapply)
   }
 

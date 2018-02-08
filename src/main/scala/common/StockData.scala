@@ -21,22 +21,6 @@ object StockData {
       "&" + vars(1) + "=" + end.getDayOfMonth +
       "&" + vars(2) + "=" + end.getYearOfCentury +
       "&ignore=.csv"
-    //println( url )
     io.Source.fromURL(url).mkString //.split("\n").toList
   }
-/*
-  def getId(s: String) = db.withSession {
-    implicit session =>
-      if (MTable.getTables(Stocks.TABLENAME).list.isEmpty) {
-        (Stocks.db.ddl).create
-      }
-
-      val q = for (c <- Stocks.db if c.symbol === symbol) yield c.id
-      val l = q.list
-      if (l.isEmpty)
-        (Stocks.db returning Stocks.db.map(_.id)) += Stocks.StockRow(None, s)
-      else
-        l.head
-  }
-  */
 }
